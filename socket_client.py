@@ -3,6 +3,7 @@ import time
 
 HOST_IP = "127.0.0.1"
 HOST_PORT = 32000
+MAX_DATA_SIZE = 1024
 
 s = socket.socket()
 print(f"Connecting to {HOST_IP}, port {HOST_PORT}......")
@@ -15,5 +16,15 @@ while True:
     else:
         print("Connection established")
         break
+
+while True:
+    data_received = s.recv(MAX_DATA_SIZE)
+    if data_received:
+        print(f"MESSAGE : {data_received.decode()}")
+    else:
+        print("No data received")
+        break
+    respond = input("YOU: ")
+    s.sendall(respond.encode())
 
 s.close()
