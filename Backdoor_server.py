@@ -13,13 +13,13 @@ connection_socket, client_address = s.accept()
 print(f"Connection established with {client_address}")
 s.close()
 while True:
-    text = input("YOU: ")
-    if text == "" : break
+    text = input("Command: ")
+    if text == "":
+        continue
     connection_socket.sendall(text.encode())
     data_received = connection_socket.recv(MAX_DATA_SIZE)
-    if data_received:
-        print(f"MESSAGE : {data_received.decode()}")
-    else:
-        print("No data received")
+    if not data_received:
+        break
+    print(data_received.decode())
 
 connection_socket.close()
