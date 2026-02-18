@@ -28,6 +28,9 @@ while True:
     # Ensures the server does not block if respond is nothing
     if not respond or len(respond) == 0:
         respond = " "
+    header = str(len(respond.encode())).zfill(13)
+    print(header)
+    s.sendall(header.encode())
     s.sendall(respond.encode())
 
 s.close()
